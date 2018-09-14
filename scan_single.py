@@ -3,6 +3,7 @@ from IPy import IP
 from update_database import MySqlCommand
 from check_modules import checkModules
 from parse_scanresult import ParseScanResult
+from get_domains import GetDomains
 
 commonPrefix = '[++]'
 essentialPrefix = '[##]'
@@ -32,7 +33,7 @@ def save2Database(mydict,table):
         print(e)
 
 
-def scan_single(command, targetIp='123.58.182.251'):
+def scan_single(command, targetIp='127.0.0.1'):
     print('scanning target ip : {}\n'.format(targetIp))
     scan_command = command.format(targetIp)
     result = os.popen(scan_command).read()
@@ -42,10 +43,20 @@ def scan_single(command, targetIp='123.58.182.251'):
     try:
         parsedResult = ParseScanResult()
         parsedResult.parseScanResultXml(targetIp,result)
-
+    except Exception as e:
+        print(e)
+    # write domains to parseResult
+    try:
+        domains = GetDomains()
+        domains.get_domain_AiZhan(targetIp)
+        vars(parsedResult)['dev_domains'] = vars(domains)['domains']
+    except Exception as e:
+        print(e)
+    try:
         save2Database(vars(parsedResult), 'devs')
-    except 404:
+    except Exception as e:
         error_ip_list.append(targetIp)
+
 
 
 def parseIps(s):

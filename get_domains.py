@@ -1,20 +1,21 @@
-import urllib,requests,os,sys,json
+from urllib.request import urlopen
+from bs4 import BeautifulSoup
 
-yellow_page_aizhan = 'https://dns.aizhan.com/{}/'
+class GetDomains(object):
+    def __init__(self):
+        self.domains = []
+    def get_domain_AiZhan(self,ip):
+        ret = urlopen('http://dns.aizhan.com/{}/'.format(ip)).read().decode('utf8')
+        soup = BeautifulSoup(ret,'lxml')
+        dns_content = soup.find(class_='dns-content')
+        tr = dns_content.find_all('tr')
+        for i in range(1,len(tr)):
+            a = tr[i].find('a').get_text()
+            self.domains.append(a)
+    def get_domain_YouGetSignal(self,ip):
+        return
 
-'''
-http://bgp.he.net/，IP地址查对应机房：IP地址在 bgp.he.net 直接能查到IP所属机房或运营商的AS号。 
-http://cn.bing.com/search?q=ip%3A220.181.111.85
-http://dns.aizhan.com/?q=www.baidu.com
-http://domains.yougetsignal.com/domains.php?remoteAddress=lcx.cc
-http://i.links.cn/sameip/61.164.241.103.html
-http://ip.robtex.com/
-http://rootkit.net.cn/index.aspx，查c段的话：http://c.wlan.im/
-http://sameip.org/
-http://tool.114la.com/sameip/
-http://tool.chinaz.com/Same/
-http://www.114best.com/ip/114.aspx?w=61.164.241.103
-http://www.yougetsignal.com/tools/web-sites-on-web-server/，菜刀里面的。
+
 '''
 
 def getPage(ip,page):
@@ -28,3 +29,4 @@ def getMaxPage(ip):
     json_data = ret.json()
     maxCount = json_data[u'conut']
     print(maxCount)
+'''

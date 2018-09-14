@@ -7,7 +7,7 @@ class MySqlCommand(object):
         self.port = 3306
         self.user = 'root'
         self.password = 'geniusroot'
-        self.db = 'blackEyePeans'
+        self.db = 'blackEyeBeans'
     # connect to database
     def connectMySql(self):
         try:

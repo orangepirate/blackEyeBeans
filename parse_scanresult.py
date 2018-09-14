@@ -9,10 +9,7 @@ class ParseScanResult(object):
     # initialization
     def __init__(self):
         self.dev_ip = 'null'
-        self.dev_domain = 'null'
-        self.dev_hostname = 'null'
-        self.dev_hosttype = 'null'
-        self.dev_vendor = 'null'
+        self.dev_domains = []
         self.dev_state = 'null'
         self.dev_ports = []
         self.dev_portsstate = []

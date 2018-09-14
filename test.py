@@ -1,9 +1,15 @@
-from urllib.request import *
+from urllib.request import urlopen
 from parse_scanresult import ParseScanResult
-from get_webinfo import getWebInfo
+#from get_webinfo import getWebInfo
+from get_domains import GetDomains
 
 ip = '112.74.133.190'
 
+domains = GetDomains()
+domains.get_domain_AiZhan(ip)
+print(vars(domains))
+
+'''
 #ret = urlopen('http://{}'.format(ip)).read().decode('utf8')
 targetIp = '123.58.182.251.xml'
 f = open('123.58.182.251.xml','r').read()
@@ -18,3 +24,5 @@ for i in range(len(vars(parsedxml)['dev_ports'])):
     #print(vars(parsedxml)['dev_cpes'])
 
 print(vars(parsedxml))
+
+'''
