@@ -1,14 +1,23 @@
 from urllib.request import urlopen
 from parse_scanresult import ParseScanResult
-#from get_webinfo import getWebInfo
+from get_webinfo import GetWebInfo
 from get_domains import GetDomains
 
 ip = '112.74.133.190'
+webinfo = GetWebInfo()
+webinfo.getWebInfo80(ip)
+print(vars(webinfo))
+if '112' in vars(webinfo)['ip']:
+    print('true')
+else:
+    print('no')
 
+
+'''
 domains = GetDomains()
 domains.get_domain_AiZhan(ip)
 print(vars(domains))
-
+'''
 '''
 #ret = urlopen('http://{}'.format(ip)).read().decode('utf8')
 targetIp = '123.58.182.251.xml'

@@ -4,6 +4,7 @@ from update_database import MySqlCommand
 from check_modules import checkModules
 from parse_scanresult import ParseScanResult
 from get_domains import GetDomains
+from get_webinfo import GetWebInfo
 
 commonPrefix = '[++]'
 essentialPrefix = '[##]'
@@ -37,8 +38,6 @@ def scan_single(command, targetIp='127.0.0.1'):
     print('scanning target ip : {}\n'.format(targetIp))
     scan_command = command.format(targetIp)
     result = os.popen(scan_command).read()
-    # save result
-    #save(result,targetIp)
     # parse scan result
     try:
         parsedResult = ParseScanResult()
@@ -52,6 +51,15 @@ def scan_single(command, targetIp='127.0.0.1'):
         vars(parsedResult)['dev_domains'] = vars(domains)['domains']
     except Exception as e:
         print(e)
+    # explore ip to get webinfo
+    try:
+        webinfo = GetWebInfo()
+        if '80' in vars(parsedResult)['dev_ports']:
+            webinfo.getWebInfo80(targetIp)
+    except Exception as e:
+        print(e)
+
+    # save data into database
     try:
         save2Database(vars(parsedResult), 'devs')
     except Exception as e:

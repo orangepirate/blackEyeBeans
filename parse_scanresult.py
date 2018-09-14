@@ -45,7 +45,7 @@ class ParseScanResult(object):
                 port = one.attrs['portid']
                 portstate = one.find('state').attrs['state']
                 portservice = one.find('service').attrs['name']
-                cpe = str(one.find('cpe')).replace('<cpe>','').replace('</cpe>','')
+                cpe = str(one.find('cpe')).get_text()
                 self.dev_ports.append(port)
                 self.dev_portsstate.append(portstate)
                 self.dev_services.append(portservice)

@@ -1,4 +1,6 @@
 from urllib import request
+from urllib.request import urlopen
+from bs4 import BeautifulSoup
 
 '''
 if __name__ == "__main__":
@@ -23,10 +25,11 @@ class GetWebInfo(object):
     def __init__(self):
         self.ip = ''
         self.title = ''
-        self.domain = ''
-        self.keywords = ''
-        self.head = {}
+        self.footer = ''
 
-    def getWebInfo(self,protocal,ip):
-        if protocal == 'http':
-            ret = request
+    def getWebInfo80(self,ip):
+        self.ip = ip
+        ret = urlopen('http://{}'.format(ip)).read().decode('utf8')
+        soup = BeautifulSoup(ret,'lxml')
+        self.title = soup.find('title').get_text()
+        self.footer = soup.find(class_='footer').get_text().strip().replace('\r','').replace('\n','')
