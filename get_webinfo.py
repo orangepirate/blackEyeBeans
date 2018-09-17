@@ -31,5 +31,8 @@ class GetWebInfo(object):
         self.ip = ip
         ret = urlopen('http://{}'.format(ip)).read().decode('utf8')
         soup = BeautifulSoup(ret,'lxml')
-        self.title = soup.find('title').get_text()
-        self.footer = soup.find(class_='footer').get_text().strip().replace('\r','').replace('\n','')
+        try:
+            self.title = soup.find('title').get_text()
+        except:
+            self.title = 'null'
+            #self.footer = soup.find(class_='footer').get_text().strip().replace('\r','').replace('\n','')
