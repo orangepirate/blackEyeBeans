@@ -4,7 +4,7 @@
 #from get_domains import GetDomains
 from scan_single import *
 #import time
-ip = '192.168.1.79'
+ip = '192.168.1.101'
 import os
 import sys
 
