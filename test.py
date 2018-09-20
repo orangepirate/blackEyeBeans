@@ -8,7 +8,30 @@ ip = '192.168.1.101'
 import os
 import sys
 
-scanOs(scan_os,ip)
+
+start = time.time()
+if os.getuid():
+    print('please run this python script with root privilege... returns now...')
+    exit(0)
+# get target ip
+targetIp = '192.168.1.59'
+parsedInfo = {}
+update_time = update_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
+parsedInfo.update({'update_time':update_time})
+# scan target without threads
+
+scanTarget(scan_os,targetIp)
+scanTarget(scan_service,targetIp)
+# write parsedInfo into database
+try:
+    save2Database(parsedInfo, 'devs')
+except Exception as e:
+    print(e)
+end = time.time()
+print('scan target {} success.'.format(targetIp))
+print('scan takes {} seconds.'.format(end-start))
+
+
 
 
 '''

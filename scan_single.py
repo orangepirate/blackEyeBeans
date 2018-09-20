@@ -1,4 +1,4 @@
-import os,sys,threading
+import os,sys,threading,time
 from IPy import IP
 from multiprocessing import Process,Queue
 # my own module
@@ -8,16 +8,11 @@ from parse_scanresult import ParseScanResult
 from get_domains import GetDomains
 from get_webinfo import GetWebInfo
 
-commonPrefix = '[++]'
-essentialPrefix = '[##]'
-midfix = '[--]'
-portfix = '[port]'
+parsedResult = ParseScanResult()
+threadLock = threading.Lock()
+scan = 0
 
-scaned_ip_list = []
-error_ip_list = []
-total_ip_list = []
-
-scan_port = 'nmap -oX - -Pn {}'
+#scan_port = 'nmap -oX - -Pn {}'
 scan_service = 'nmap -oX - -sV {}'
 scan_os = 'sudo nmap -O {}'
 
@@ -44,44 +39,35 @@ def save2Database(mydict,table):
         print(e)
 
 
-def scanService(command, targetIp='127.0.0.1'):
-    print('scanning target {} services now...'.format(targetIp))
+def scanTarget(command, targetIp='127.0.0.1'):
+    if '-sV' in command:
+        print('scanning target {} services now ...'.format(targetIp))
+    if '-O' in command:
+        print('scanning target {} os now ...'.format(targetIp))
     scan_command = command.format(targetIp)
-    result = os.popen(scan_command).read()
+    try:
+        result = os.popen(scan_command).read()
+    except Exception as e:
+        print(e)
     # if scan target is down, return without parsing scan result
     if('1 IP address (0 hosts up)') in result:
         print('host {} is down, returns now.'.format(targetIp))
+        scan = 1
         return
-    # parse scan result
+    # parse service scan result
     try:
-        parsedResult = ParseScanResult()
-        parsedResult.parseScanServiceResultXml(result)
+        if '-sV' in command:
+            threadLock.acquire()
+            parsedResult.parseScanServiceResultXml(result)
+            threadLock.release()
+        if '-O' in command:
+            threadLock.acquire()
+            parsedResult.parseScanOsResult(result)
+            threadLock.release()
+        return parsedResult
     except Exception as e:
         print(e)
-    print(vars(parsedResult))
-    '''
-    # save data into database
-    try:
-        save2Database(vars(parsedResult), 'devs')
-    except Exception as e:
-        error_ip_list.append(targetIp)
-    '''
-
-def scanOs(command,targetIp='127.0.0.1'):
-    print('scanning target {} os now...'.format(targetIp))
-    scan_command = command.format(targetIp)
-    result = os.popen(scan_command,).read()
-    # return if host is down
-    if '(0 hosts up)' in result:
-        print('host {} is down, returns now.'.format(targetIp))
-        return
-    #save2XML(result,targetIp)
-    # parse os scan result
-    parsedResult = ParseScanResult()
-    parsedResult.dev_ip = targetIp
-    parsedResult.parseScanOsResult(result)
-    print(vars(parsedResult))
-
+    return
 
 def parseIps(s):
     ip_list = []
@@ -90,29 +76,36 @@ def parseIps(s):
     return ip_list
 
 if __name__ == '__main__':
+    start = time.time()
     if os.getuid():
         print('please run this python script with root privilege... returns now...')
         exit(0)
     # get target ip
-    targetIp = '192.168.1.99'
+    targetIp = '112.74.133.190'
+    update_time = update_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
+    parsedResult.update_time = update_time
     # scan target with 2 threads : service and os
     threads = []
-    threadService = threading.Thread(target = scanService,args = (scan_service,targetIp))
+    threadService = threading.Thread(target = scanTarget,args = (scan_service,targetIp))
     threads.append(threadService)
-    threadOs = threading.Thread(target=scanOs,args=(scan_os,targetIp))
+    threadOs = threading.Thread(target=scanTarget,args=(scan_os,targetIp))
     threads.append(threadOs)
     for thread in threads:
         thread.setDaemon(True)
         thread.start()
+    for thread in threads:
         thread.join()
-    thread.join()
-    print('scan target {} success.'.format(targetIp))
-    '''
-    ips = IP('192.168.1.109')
-    # parse ips into ip_list
-    ip_list = parseIps(ips)
-    # scan target according to ip_list
-    for ip in ip_list:
-        scanService(scan_service,ip)
-        scanOs(scan_os,ip)
-    '''
+    # store result if success, return without storing if scan equals 1
+    if scan == 0:
+        # write parsedInfo into database
+        try:
+            save2Database(vars(parsedResult), 'devs')
+        except Exception as e:
+            print(e)
+        end = time.time()
+        print('scan target {} success....\n {}'.format(targetIp,vars(parsedResult)))
+        print('scan takes {} seconds.'.format(end-start))
+        exit()
+    else:
+        print('something went wrong or the host is down, exit now...')
+        exit()
