@@ -2,7 +2,7 @@ import nmap
 import re
 import datetime
 from update_database import MySqlCommand
-from scan_single import save2XML
+from scanner import save2XML
 
 commonPrefix = '[++]'
 essentialPrefix = '[##]'

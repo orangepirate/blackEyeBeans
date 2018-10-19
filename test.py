@@ -2,7 +2,7 @@
 #from parse_scanresult import ParseScanResult
 #from get_webinfo import GetWebInfo
 #from get_domains import GetDomains
-from scan_single import *
+from scanner import *
 #import time
 ip = '192.168.1.101'
 import os

@@ -1,4 +1,4 @@
-import scan_single
+import scanner
 userAgents = {}
 class UserAgents(object):
     def __init__(self):
