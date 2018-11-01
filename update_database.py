@@ -41,7 +41,7 @@ class MySqlCommand(object):
                 insert_id = self.conn.insert_id()
                 self.conn.commit()
                 if result:
-                    print('insert success, the id is {}.'.format(insert_id))
+                    print('[++] insert success, the id is {}.'.format(insert_id))
                     return insert_id+1
             except pymysql.Error as e:
                 # rollback if something goes wrong

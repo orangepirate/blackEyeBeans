@@ -66,12 +66,12 @@ def parseScanServiceResultXml(xml):
                 dev_cpes.append('null')
         ret['dev_ip'] = dev_ip
         ret['dev_state'] = dev_state
-        ret['dev_products'] = dev_products
-        ret['dev_extrainfos'] = dev_extrainfos
-        ret['dev_cpes'] = dev_cpes
+        ret['dev_ports'] = dev_ports
         ret['dev_portsstate'] = dev_portsstate
         ret['dev_services'] = dev_services
-        ret['dev_ports'] = dev_ports
+        ret['dev_products'] = dev_products
+        ret['dev_cpes'] = dev_cpes
+        ret['dev_extrainfos'] = dev_extrainfos
         return ret
     except Exception as e:
         return

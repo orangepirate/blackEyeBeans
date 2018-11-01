@@ -78,7 +78,7 @@ def scanTarget(command, targetIp='127.0.0.1'):
         return ret
     except Exception as e:
         print(e)
-    return
+        return
 
 def scan_single(targetIp='101.200.195.98'):
     start = time.time()
@@ -103,17 +103,14 @@ def scan_single(targetIp='101.200.195.98'):
             result.update(t.get_result())
             # store result if success, return without storing if scan equals 1
             # write parsedInfo into database
-            '''
-            try:
-                save2Database(result, 'devs')
-            except Exception as e:
-                print(e)
-            end = time.time()
-            print('scan target {} success....\n {}'.format(targetIp, result))
-            print('scan takes {} seconds.'.format(end - start))
-            exit()
-            '''
         else:
             print('something went wrong or the host is down, exit now...')
-        print('scan target {} success....\n {}'.format(targetIp, result))
+            return
+    try:
+        save2Database(result, 'devs')
+    except Exception as e:
+        print(e)
+    end = time.time()
+    print('scan takes {} seconds.'.format(end - start))
+    return
 
