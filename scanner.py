@@ -3,17 +3,30 @@ from multiprocessing import Process,Queue
 # my own module
 from update_database import MySqlCommand
 #from check_modules import checkModules
-from parse_scanresult import ParseScanResult
+from parse_scanresult import *
 from get_domains import GetDomains
 from get_webinfo import GetWebInfo
 
-parsedResult = ParseScanResult()
 threadLock = threading.Lock()
 scan = 0
 
 #scan_port = 'nmap -oX - -Pn {}'
 scan_service = 'nmap -oX - -sV {}'
 scan_os = 'sudo nmap -O {}'
+
+class MyThread(threading.Thread):
+    def __init__(self,func,args=()):
+        super(MyThread,self).__init__()
+        self.func = func
+        self.args = args
+    def run(self):
+        self.result = self.func(*self.args)
+
+    def get_result(self):
+        try:
+            return self.result  # 如果子线程不使用join方法，此处可能会报没有self.result的错误
+        except Exception:
+            return None
 
 def get_privilege():
     if os.getuid():
@@ -37,7 +50,6 @@ def save2Database(mydict,table):
     except Exception as e:
         print(e)
 
-
 def scanTarget(command, targetIp='127.0.0.1'):
     if '-sV' in command:
         print('scanning target {} services now ...'.format(targetIp))
@@ -57,46 +69,51 @@ def scanTarget(command, targetIp='127.0.0.1'):
     try:
         if '-sV' in command:
             threadLock.acquire()
-            parsedResult.parseScanServiceResultXml(result)
+            ret = parseScanServiceResultXml(result)
             threadLock.release()
         if '-O' in command:
             threadLock.acquire()
-            parsedResult.parseScanOsResult(result)
+            ret = parseScanOsResultXml(result)
             threadLock.release()
-        return parsedResult
+        return ret
     except Exception as e:
         print(e)
     return
 
 def scan_single(targetIp='101.200.195.98'):
     start = time.time()
+    result = {}
     if os.getuid():
         print('please run this python script with root privilege... returns now...')
         exit(0)
     update_time = update_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
-    parsedResult.update_time = update_time
+    result['update_time'] = update_time
     # scan target with 2 threads : service and os
     threads = []
-    threadService = threading.Thread(target = scanTarget,args = (scan_service,targetIp))
+    threadService = MyThread(func = scanTarget,args = (scan_service,targetIp))
     threads.append(threadService)
-    threadOs = threading.Thread(target=scanTarget,args=(scan_os,targetIp))
+    threadOs = MyThread(func = scanTarget,args=(scan_os,targetIp))
     threads.append(threadOs)
     for thread in threads:
         thread.setDaemon(True)
         thread.start()
-    for thread in threads:
-        thread.join()
-    # store result if success, return without storing if scan equals 1
-    if scan == 0:
-        # write parsedInfo into database
-        try:
-            save2Database(vars(parsedResult), 'devs')
-        except Exception as e:
-            print(e)
-        end = time.time()
-        print('scan target {} success....\n {}'.format(targetIp,vars(parsedResult)))
-        print('scan takes {} seconds.'.format(end-start))
-        exit()
-    else:
-        print('something went wrong or the host is down, exit now...')
-        exit()
+    for t in threads:
+        t.join()
+        if t.get_result():
+            result.update(t.get_result())
+            # store result if success, return without storing if scan equals 1
+            # write parsedInfo into database
+            '''
+            try:
+                save2Database(result, 'devs')
+            except Exception as e:
+                print(e)
+            end = time.time()
+            print('scan target {} success....\n {}'.format(targetIp, result))
+            print('scan takes {} seconds.'.format(end - start))
+            exit()
+            '''
+        else:
+            print('something went wrong or the host is down, exit now...')
+        print('scan target {} success....\n {}'.format(targetIp, result))
+
